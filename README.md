@@ -72,6 +72,10 @@ This project demonstrates a simple DevOps setup using AWS Application Load Balan
 
 ## Architecture
 
+![AWS Architecture Diagram](./mermaid-diagram.png)
+
+
+
 This project sets up:
 - A VPC with public subnets across 2 availability zones
 - An Application Load Balancer

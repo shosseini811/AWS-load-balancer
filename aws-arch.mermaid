@@ -1,0 +1,81 @@
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#E1F5FE',
+    'primaryTextColor': '#000',
+    'primaryBorderColor': '#00B0FF',
+    'lineColor': '#2196F3',
+    'secondaryColor': '#F3F9FC',
+    'tertiaryColor': '#fff'
+  }
+}}%%
+
+graph TD
+    %% Styles
+    classDef client fill:#E1F5FE,stroke:#00B0FF,stroke-width:2px
+    classDef networking fill:#E3F2FD,stroke:#2196F3,stroke-width:2px
+    classDef loadbalancer fill:#E8EAF6,stroke:#3F51B5,stroke-width:2px
+    classDef application fill:#F3E5F5,stroke:#9C27B0,stroke-width:2px
+    classDef services fill:#F9FBE7,stroke:#827717,stroke-width:2px
+    classDef security fill:#FFEBEE,stroke:#D32F2F,stroke-width:2px
+
+    %% Components
+    Client[Client/Internet]:::client
+
+    subgraph vpc[" VPC: 10.0.0.0/16 "]
+        IGW[Internet Gateway]:::networking
+        
+        subgraph lb[" Load Balancer Tier "]
+            ALB[Application Load Balancer]:::loadbalancer
+        end
+        
+        subgraph app[" Application Tier "]
+            subgraph az1[" Availability Zone 1 "]
+                subgraph subnet1[" Public Subnet 1<br/>10.0.1.0/24 "]
+                    ECS1[ECS Task 1<br/>Flask App]:::application
+                end
+            end
+            
+            subgraph az2[" Availability Zone 2 "]
+                subgraph subnet2[" Public Subnet 2<br/>10.0.2.0/24 "]
+                    ECS2[ECS Task 2<br/>Flask App]:::application
+                end
+            end
+        end
+
+        %% Security moved inside VPC
+        subgraph sg[" Security Groups "]
+            direction LR
+            LB_SG[ALB SG<br/>IN:80]:::security
+            APP_SG[App SG<br/>IN:5000]:::security
+        end
+    end
+
+    %% AWS Services to the right
+    subgraph services[" AWS Services "]
+        direction TB
+        ECR[ECR Repository]:::services
+        CW[CloudWatch Logs]:::services
+    end
+
+    %% Simplified Connections
+    Client --> IGW
+    IGW --> ALB
+    ALB --> ECS1 & ECS2
+    ECR --> ECS1 & ECS2
+    ECS1 & ECS2 --> CW
+    
+    %% Security Associations
+    LB_SG -.->|protects| ALB
+    APP_SG -.->|protects| ECS1 & ECS2
+
+    %% Style overrides
+    style vpc fill:#F5F5F5,stroke:#78909C
+    style lb fill:#F5F5F5,stroke:#78909C
+    style app fill:#F5F5F5,stroke:#78909C
+    style az1 fill:#F5F5F5,stroke:#78909C
+    style az2 fill:#F5F5F5,stroke:#78909C
+    style subnet1 fill:#E3F2FD,stroke:#78909C
+    style subnet2 fill:#E3F2FD,stroke:#78909C
+    style services fill:#F5F5F5,stroke:#78909C
+    style sg fill:#F5F5F5,stroke:#78909C
