@@ -117,20 +117,13 @@ resource "aws_security_group" "lb_sg" {
 }
 
 # ECR Repository
-resource "aws_ecr_repository" "app" {
-  name                 = "flask-app-demo"
-  image_tag_mutability = "MUTABLE"
-
-  image_scanning_configuration {
-    scan_on_push = false
-  }
-
-  force_delete = true  # Allows deletion of the repository with terraform destroy
+data "aws_ecr_repository" "app" {
+  name = "flask-app-demo"
 }
 
 # Output the repository URL for easy reference
 output "repository_url" {
-  value = aws_ecr_repository.app.repository_url
+  value = data.aws_ecr_repository.app.repository_url
 }
 
 # ECS Cluster
@@ -173,7 +166,7 @@ resource "aws_ecs_task_definition" "app" {
   container_definitions = jsonencode([
     {
       name      = "flask-app"
-      image     = "${aws_ecr_repository.app.repository_url}:latest"
+      image     = "${data.aws_ecr_repository.app.repository_url}:latest"
       essential = true
       portMappings = [
         {
